@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openadr3"
+version = "0.1.0"
+description = "OpenADR 3 Entity API Library"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.5",
+    "pendulum>=3.0",
+    "httpx>=0.27",
+    "openapi-core>=0.19",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-httpx>=0.30",
+    "ruff>=0.3",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openadr3"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+src = ["src"]

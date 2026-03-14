@@ -238,6 +238,59 @@ class OpenADRClient:
     def delete_subscription(self, subscription_id: str) -> httpx.Response:
         return self._request("DELETE", f"/subscriptions/{subscription_id}")
 
+    # -- Notifiers & MQTT Topics --
+
+    def get_notifiers(self) -> httpx.Response:
+        return self._request("GET", "/notifiers")
+
+    def get_mqtt_topics_programs(self) -> httpx.Response:
+        return self._request("GET", "/notifiers/mqtt/topics/programs")
+
+    def get_mqtt_topics_program(self, program_id: str) -> httpx.Response:
+        return self._request("GET", f"/notifiers/mqtt/topics/programs/{program_id}")
+
+    def get_mqtt_topics_program_events(self, program_id: str) -> httpx.Response:
+        return self._request("GET", f"/notifiers/mqtt/topics/programs/{program_id}/events")
+
+    def get_mqtt_topics_events(self) -> httpx.Response:
+        return self._request("GET", "/notifiers/mqtt/topics/events")
+
+    def get_mqtt_topics_reports(self) -> httpx.Response:
+        return self._request("GET", "/notifiers/mqtt/topics/reports")
+
+    def get_mqtt_topics_subscriptions(self) -> httpx.Response:
+        return self._request("GET", "/notifiers/mqtt/topics/subscriptions")
+
+    def get_mqtt_topics_vens(self) -> httpx.Response:
+        return self._request("GET", "/notifiers/mqtt/topics/vens")
+
+    def get_mqtt_topics_ven(self, ven_id: str) -> httpx.Response:
+        return self._request("GET", f"/notifiers/mqtt/topics/vens/{ven_id}")
+
+    def get_mqtt_topics_ven_events(self, ven_id: str) -> httpx.Response:
+        return self._request("GET", f"/notifiers/mqtt/topics/vens/{ven_id}/events")
+
+    def get_mqtt_topics_ven_programs(self, ven_id: str) -> httpx.Response:
+        return self._request("GET", f"/notifiers/mqtt/topics/vens/{ven_id}/programs")
+
+    def get_mqtt_topics_ven_resources(self, ven_id: str) -> httpx.Response:
+        return self._request("GET", f"/notifiers/mqtt/topics/vens/{ven_id}/resources")
+
+    def get_mqtt_topics_resources(self) -> httpx.Response:
+        return self._request("GET", "/notifiers/mqtt/topics/resources")
+
+    # -- VEN lookup --
+
+    def find_ven_by_name(self, name: str) -> dict[str, Any] | None:
+        """Find a VEN by venName. Returns the raw dict or None."""
+        resp = self.get_vens(targetType="VEN_NAME", targetValues=[name])
+        if not success(resp):
+            return None
+        for v in resp.json():
+            if v.get("venName") == name:
+                return v
+        return None
+
     # -- Coerced entity methods --
 
     def _coerce_list(self, resp: httpx.Response) -> list[OpenADRBase]:

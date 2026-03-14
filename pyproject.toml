@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "openadr3"
 version = "0.1.0"
 description = "OpenADR 3 Entity API Library"
+license = "MIT"
 requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2.5",

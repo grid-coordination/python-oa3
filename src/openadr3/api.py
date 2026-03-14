@@ -328,6 +328,16 @@ class OpenADRClient:
                 return v
         return None
 
+    def find_program_by_name(self, name: str) -> dict[str, Any] | None:
+        """Find a program by programName. Returns the raw dict or None."""
+        resp = self.get_programs(targetType="PROGRAM_NAME", targetValues=[name])
+        if not success(resp):
+            return None
+        for p in resp.json():
+            if p.get("programName") == name:
+                return p
+        return None
+
     # -- Coerced entity methods --
 
     def _coerce_list(self, resp: httpx.Response) -> list[OpenADRBase]:

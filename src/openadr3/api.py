@@ -279,6 +279,43 @@ class OpenADRClient:
     def get_mqtt_topics_resources(self) -> httpx.Response:
         return self._request("GET", "/notifiers/mqtt/topics/resources")
 
+    # -- Auth --
+
+    def get_auth_server(self) -> httpx.Response:
+        """Get auth server info (token endpoint URL)."""
+        return self._request("GET", "/auth/server")
+
+    def fetch_token(
+        self,
+        client_id: str,
+        client_secret: str,
+        token_url: str | None = None,
+    ) -> str:
+        """Fetch an OAuth2 access token using client credentials grant.
+
+        If token_url is not provided, discovers it via GET /auth/server.
+        Returns the access_token string and updates this client's auth.
+        """
+        if not token_url:
+            resp = self.get_auth_server()
+            resp.raise_for_status()
+            token_url = resp.json()["tokenURL"]
+
+        token_resp = httpx.post(token_url, data={
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": client_secret,
+        })
+        token_resp.raise_for_status()
+        token = token_resp.json()["access_token"]
+
+        # Update this client's auth with the new token
+        self._http = httpx.Client(
+            base_url=self.base_url,
+            auth=BearerAuth(token),
+        )
+        return token
+
     # -- VEN lookup --
 
     def find_ven_by_name(self, name: str) -> dict[str, Any] | None:

@@ -308,4 +308,4 @@ The library references the OpenADR 3.1.0 specification. The spec file is symlink
 
 ## License
 
-[MIT](LICENSE)
+[MIT License](LICENSE) — Copyright (c) 2026 Clark Communications Corporation

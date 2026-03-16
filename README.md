@@ -304,7 +304,7 @@ mypy src/openadr3/
 
 ## OpenAPI Spec
 
-The library references the OpenADR 3.1.0 specification. The spec file is symlinked at `resources/openadr3.yaml`.
+The OpenADR 3.1.0 specification is embedded at `resources/openadr3.yaml`. See `resources/ORIGIN.md` for provenance and license.
 
 ## License
 

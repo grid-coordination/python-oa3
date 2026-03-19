@@ -6,8 +6,24 @@ build-backend = "hatchling.build"
 name = "openadr3"
 version = "0.1.0"
 description = "OpenADR 3 Entity API Library"
+readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
+authors = [
+    {name = "Clark Communications Corporation"}
+]
+keywords = ["openadr", "openadr3", "demand-response", "energy", "grid"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+]
 dependencies = [
     "pydantic>=2.5",
     "pendulum>=3.0",
@@ -22,6 +38,11 @@ dev = [
     "pytest-httpx>=0.30",
     "ruff>=0.3",
 ]
+
+[project.urls]
+Homepage = "https://github.com/grid-coordination/python-oa3"
+Repository = "https://github.com/grid-coordination/python-oa3"
+Issues = "https://github.com/grid-coordination/python-oa3/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/openadr3"]

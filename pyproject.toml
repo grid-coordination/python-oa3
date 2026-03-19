@@ -40,7 +40,7 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/grid-coordination/python-oa3"
+Homepage = "https://grid-coordination.energy"
 Repository = "https://github.com/grid-coordination/python-oa3"
 Issues = "https://github.com/grid-coordination/python-oa3/issues"
 

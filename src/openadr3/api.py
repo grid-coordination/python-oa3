@@ -21,23 +21,27 @@ from openadr3.entities.models import (
 )
 
 # Client type scopes matching Clojure implementation
-VEN_SCOPES = frozenset({
-    "read_all",
-    "read_targets",
-    "read_ven_objects",
-    "write_reports",
-    "write_subscriptions",
-    "write_vens",
-})
+VEN_SCOPES = frozenset(
+    {
+        "read_all",
+        "read_targets",
+        "read_ven_objects",
+        "write_reports",
+        "write_subscriptions",
+        "write_vens",
+    }
+)
 
-BL_SCOPES = frozenset({
-    "read_all",
-    "read_bl",
-    "write_programs",
-    "write_events",
-    "write_subscriptions",
-    "write_vens",
-})
+BL_SCOPES = frozenset(
+    {
+        "read_all",
+        "read_bl",
+        "write_programs",
+        "write_events",
+        "write_subscriptions",
+        "write_vens",
+    }
+)
 
 
 def success(resp: httpx.Response) -> bool:
@@ -250,7 +254,9 @@ class OpenADRClient:
         return self._request("GET", f"/notifiers/mqtt/topics/programs/{program_id}")
 
     def get_mqtt_topics_program_events(self, program_id: str) -> httpx.Response:
-        return self._request("GET", f"/notifiers/mqtt/topics/programs/{program_id}/events")
+        return self._request(
+            "GET", f"/notifiers/mqtt/topics/programs/{program_id}/events"
+        )
 
     def get_mqtt_topics_events(self) -> httpx.Response:
         return self._request("GET", "/notifiers/mqtt/topics/events")
@@ -301,11 +307,14 @@ class OpenADRClient:
             resp.raise_for_status()
             token_url = resp.json()["tokenURL"]
 
-        token_resp = httpx.post(token_url, data={
-            "grant_type": "client_credentials",
-            "client_id": client_id,
-            "client_secret": client_secret,
-        })
+        token_resp = httpx.post(
+            token_url,
+            data={
+                "grant_type": "client_credentials",
+                "client_id": client_id,
+                "client_secret": client_secret,
+            },
+        )
         token_resp.raise_for_status()
         token = token_resp.json()["access_token"]
 

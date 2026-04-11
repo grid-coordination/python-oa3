@@ -74,9 +74,9 @@ class RawProgram(RawBase):
     program_descriptions: list[RawProgramDescription] | None = Field(
         None, alias="programDescriptions"
     )
-    payload_descriptors: list[RawEventPayloadDescriptor | RawReportPayloadDescriptor] | None = (
-        Field(None, alias="payloadDescriptors")
-    )
+    payload_descriptors: (
+        list[RawEventPayloadDescriptor | RawReportPayloadDescriptor] | None
+    ) = Field(None, alias="payloadDescriptors")
     attributes: list[RawValuesMap] | None = None
     targets: list[str] | None = None
 

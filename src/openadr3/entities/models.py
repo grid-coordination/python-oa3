@@ -8,7 +8,12 @@ import pendulum
 from pydantic import BaseModel, ConfigDict, PrivateAttr
 
 from openadr3.entities.payloads import coerce_payload
-from openadr3.time import PendulumDateTime, PendulumDuration, parse_datetime, parse_duration
+from openadr3.time import (
+    PendulumDateTime,
+    PendulumDuration,
+    parse_datetime,
+    parse_duration,
+)
 
 
 class OpenADRBase(BaseModel):
@@ -107,7 +112,9 @@ class Interval(BaseModel):
         return inst
 
 
-def _parse_interval_period(raw: dict[str, Any], key: str = "intervalPeriod") -> IntervalPeriod | None:
+def _parse_interval_period(
+    raw: dict[str, Any], key: str = "intervalPeriod"
+) -> IntervalPeriod | None:
     ip = raw.get(key)
     return IntervalPeriod.from_raw(ip) if ip else None
 

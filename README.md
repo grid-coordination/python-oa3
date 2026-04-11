@@ -1,5 +1,11 @@
 # python-oa3
 
+[![PyPI version](https://img.shields.io/pypi/v/openadr3.svg)](https://pypi.org/project/openadr3/)
+[![Python versions](https://img.shields.io/pypi/pyversions/openadr3.svg)](https://pypi.org/project/openadr3/)
+[![CI](https://github.com/grid-coordination/python-oa3/actions/workflows/ci.yml/badge.svg)](https://github.com/grid-coordination/python-oa3/actions/workflows/ci.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Python client library for the [OpenADR 3](https://www.openadr.org/) API. Provides Pydantic v2 models with a two-layer coercion pattern (raw JSON shape + snake_case typed entities), an httpx-based API client, and pendulum-powered time types.
 
 ## Installation
@@ -295,12 +301,24 @@ pip install -e ".[dev]"
 # Run tests
 pytest tests/ -v
 
-# Lint
+# Lint and format
 ruff check src/
+ruff format --check src/
 
 # Type check (py.typed marker included)
 mypy src/openadr3/
 ```
+
+### Pre-commit Hooks
+
+This project uses [pre-commit](https://pre-commit.com/) to run Ruff lint and format checks automatically:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Ruff lint + format are also enforced in CI via `.github/workflows/ci.yml`.
 
 ## OpenAPI Spec
 

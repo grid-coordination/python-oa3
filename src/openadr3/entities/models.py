@@ -360,9 +360,7 @@ class Report(OpenADRBase):
             client_id=raw.get("clientID"),
             report_name=raw.get("reportName"),
             payload_descriptors=(
-                [ReportPayloadDescriptor.from_raw(pd) for pd in rpds]
-                if rpds
-                else None
+                [ReportPayloadDescriptor.from_raw(pd) for pd in rpds] if rpds else None
             ),
             resources=[ReportResource.from_raw(r) for r in raw["resources"]],
         )

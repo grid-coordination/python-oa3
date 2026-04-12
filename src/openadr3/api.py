@@ -327,24 +327,24 @@ class OpenADRClient:
 
     # -- VEN lookup --
 
-    def find_ven_by_name(self, name: str) -> dict[str, Any] | None:
-        """Find a VEN by venName. Returns the raw dict or None."""
+    def find_ven_by_name(self, name: str) -> Ven | None:
+        """Find a VEN by venName. Returns a coerced Ven or None."""
         resp = self.get_vens(targetType="VEN_NAME", targetValues=[name])
         if not success(resp):
             return None
         for v in resp.json():
             if v.get("venName") == name:
-                return v
+                return coerce(v)
         return None
 
-    def find_program_by_name(self, name: str) -> dict[str, Any] | None:
-        """Find a program by programName. Returns the raw dict or None."""
+    def find_program_by_name(self, name: str) -> Program | None:
+        """Find a program by programName. Returns a coerced Program or None."""
         resp = self.get_programs(targetType="PROGRAM_NAME", targetValues=[name])
         if not success(resp):
             return None
         for p in resp.json():
             if p.get("programName") == name:
-                return p
+                return coerce(p)
         return None
 
     # -- Coerced entity methods --

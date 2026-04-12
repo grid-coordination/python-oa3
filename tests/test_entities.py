@@ -7,9 +7,11 @@ import pendulum
 from openadr3.entities import coerce, coerce_notification, is_notification
 from openadr3.entities.models import (
     Event,
+    EventPayloadDescriptor,
     Notification,
     Program,
     Report,
+    ReportPayloadDescriptor,
     Resource,
     Subscription,
     Ven,
@@ -29,6 +31,14 @@ RAW_PROGRAM = {
         "duration": "PT1H",
     },
     "programDescriptions": [{"URL": "https://example.com/program"}],
+    "payloadDescriptors": [
+        {
+            "objectType": "EVENT_PAYLOAD_DESCRIPTOR",
+            "payloadType": "PRICE",
+            "units": "KWH",
+            "currency": "USD",
+        }
+    ],
     "attributes": [{"type": "PRICE", "values": [0.15, 0.25]}],
     "targets": ["target-1"],
 }
@@ -43,6 +53,14 @@ RAW_EVENT = {
     "duration": "PT2H",
     "priority": 1,
     "targets": ["target-1"],
+    "payloadDescriptors": [
+        {
+            "objectType": "EVENT_PAYLOAD_DESCRIPTOR",
+            "payloadType": "PRICE",
+            "units": "KWH",
+            "currency": "USD",
+        }
+    ],
     "intervalPeriod": {
         "start": "2024-06-15T14:00:00Z",
         "duration": "PT2H",
@@ -86,6 +104,16 @@ RAW_REPORT = {
     "clientName": "test-client",
     "clientID": "client-123",
     "reportName": "Usage Report",
+    "payloadDescriptors": [
+        {
+            "objectType": "REPORT_PAYLOAD_DESCRIPTOR",
+            "payloadType": "USAGE",
+            "readingType": "DIRECT_READ",
+            "units": "KWH",
+            "accuracy": 0.05,
+            "confidence": 95,
+        }
+    ],
     "resources": [
         {
             "resourceName": "HVAC Unit 1",
@@ -143,6 +171,16 @@ class TestCoerceProgram:
         assert isinstance(p.interval_period.duration, pendulum.Duration)
         assert p.interval_period.period is not None
 
+    def test_payload_descriptors(self):
+        p = coerce(RAW_PROGRAM)
+        assert p.payload_descriptors is not None
+        assert len(p.payload_descriptors) == 1
+        pd = p.payload_descriptors[0]
+        assert isinstance(pd, EventPayloadDescriptor)
+        assert pd.payload_type == "PRICE"
+        assert pd.units == "KWH"
+        assert pd.currency == "USD"
+
     def test_attributes_coerced(self):
         p = coerce(RAW_PROGRAM)
         assert p.attributes is not None
@@ -167,6 +205,16 @@ class TestCoerceEvent:
         e = coerce(RAW_EVENT)
         assert isinstance(e.duration, pendulum.Duration)
         assert e.duration.hours == 2
+
+    def test_payload_descriptors(self):
+        e = coerce(RAW_EVENT)
+        assert e.payload_descriptors is not None
+        assert len(e.payload_descriptors) == 1
+        pd = e.payload_descriptors[0]
+        assert isinstance(pd, EventPayloadDescriptor)
+        assert pd.payload_type == "PRICE"
+        assert pd.units == "KWH"
+        assert pd.currency == "USD"
 
     def test_intervals(self):
         e = coerce(RAW_EVENT)
@@ -217,6 +265,18 @@ class TestCoerceReport:
         assert isinstance(r, Report)
         assert r.event_id == "evt-001"
         assert r.client_name == "test-client"
+
+    def test_payload_descriptors(self):
+        r = coerce(RAW_REPORT)
+        assert r.payload_descriptors is not None
+        assert len(r.payload_descriptors) == 1
+        pd = r.payload_descriptors[0]
+        assert isinstance(pd, ReportPayloadDescriptor)
+        assert pd.payload_type == "USAGE"
+        assert pd.reading_type == "DIRECT_READ"
+        assert pd.units == "KWH"
+        assert pd.accuracy == 0.05
+        assert pd.confidence == 95
 
     def test_resources(self):
         r = coerce(RAW_REPORT)

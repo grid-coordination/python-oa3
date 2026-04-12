@@ -126,6 +126,71 @@ def _parse_intervals(raw: dict[str, Any]) -> list[Interval] | None:
     return [Interval.from_raw(i) for i in intervals]
 
 
+class EventPayloadDescriptor(BaseModel):
+    """Coerced event payload descriptor — snake_case fields."""
+
+    object_type: str = "EVENT_PAYLOAD_DESCRIPTOR"
+    payload_type: str
+    units: str | None = None
+    currency: str | None = None
+    _raw: dict[str, Any] = PrivateAttr(default_factory=dict)
+
+    @classmethod
+    def from_raw(cls, raw: dict[str, Any]) -> EventPayloadDescriptor:
+        inst = cls(
+            object_type=raw.get("objectType", "EVENT_PAYLOAD_DESCRIPTOR"),
+            payload_type=raw["payloadType"],
+            units=raw.get("units"),
+            currency=raw.get("currency"),
+        )
+        inst._raw = raw
+        return inst
+
+
+class ReportPayloadDescriptor(BaseModel):
+    """Coerced report payload descriptor — snake_case fields."""
+
+    object_type: str = "REPORT_PAYLOAD_DESCRIPTOR"
+    payload_type: str
+    reading_type: str | None = None
+    units: str | None = None
+    accuracy: float | None = None
+    confidence: int | None = None
+    _raw: dict[str, Any] = PrivateAttr(default_factory=dict)
+
+    @classmethod
+    def from_raw(cls, raw: dict[str, Any]) -> ReportPayloadDescriptor:
+        inst = cls(
+            object_type=raw.get("objectType", "REPORT_PAYLOAD_DESCRIPTOR"),
+            payload_type=raw["payloadType"],
+            reading_type=raw.get("readingType"),
+            units=raw.get("units"),
+            accuracy=raw.get("accuracy"),
+            confidence=raw.get("confidence"),
+        )
+        inst._raw = raw
+        return inst
+
+
+def _parse_payload_descriptor(
+    raw: dict[str, Any],
+) -> EventPayloadDescriptor | ReportPayloadDescriptor:
+    """Dispatch to the appropriate payload descriptor model based on objectType."""
+    ot = raw.get("objectType", "")
+    if ot == "REPORT_PAYLOAD_DESCRIPTOR":
+        return ReportPayloadDescriptor.from_raw(raw)
+    return EventPayloadDescriptor.from_raw(raw)
+
+
+def _parse_payload_descriptors(
+    raw: dict[str, Any],
+) -> list[EventPayloadDescriptor | ReportPayloadDescriptor] | None:
+    pds = raw.get("payloadDescriptors")
+    if pds is None:
+        return None
+    return [_parse_payload_descriptor(pd) for pd in pds]
+
+
 class Program(OpenADRBase):
     id: str | None = None
     created: PendulumDateTime = None
@@ -134,7 +199,9 @@ class Program(OpenADRBase):
     program_name: str
     interval_period: IntervalPeriod | None = None
     descriptions: list[dict[str, Any]] | None = None
-    payload_descriptors: list[dict[str, Any]] | None = None
+    payload_descriptors: (
+        list[EventPayloadDescriptor | ReportPayloadDescriptor] | None
+    ) = None
     attributes: list[Payload] | None = None
     targets: list[str] | None = None
 
@@ -149,7 +216,7 @@ class Program(OpenADRBase):
             program_name=raw["programName"],
             interval_period=_parse_interval_period(raw),
             descriptions=raw.get("programDescriptions"),
-            payload_descriptors=raw.get("payloadDescriptors"),
+            payload_descriptors=_parse_payload_descriptors(raw),
             attributes=[Payload.from_raw(a) for a in attrs] if attrs else None,
             targets=raw.get("targets"),
         )
@@ -168,7 +235,7 @@ class Event(OpenADRBase):
     priority: int | None = None
     targets: list[str] | None = None
     report_descriptors: list[dict[str, Any]] | None = None
-    payload_descriptors: list[dict[str, Any]] | None = None
+    payload_descriptors: list[EventPayloadDescriptor] | None = None
     interval_period: IntervalPeriod | None = None
     intervals: list[Interval] | None = None
 
@@ -185,7 +252,7 @@ class Event(OpenADRBase):
             priority=raw.get("priority"),
             targets=raw.get("targets"),
             report_descriptors=raw.get("reportDescriptors"),
-            payload_descriptors=raw.get("payloadDescriptors"),
+            payload_descriptors=_parse_payload_descriptors(raw),
             interval_period=_parse_interval_period(raw),
             intervals=_parse_intervals(raw),
         )
@@ -277,11 +344,12 @@ class Report(OpenADRBase):
     client_name: str
     client_id: str | None = None
     report_name: str | None = None
-    payload_descriptors: list[dict[str, Any]] | None = None
+    payload_descriptors: list[ReportPayloadDescriptor] | None = None
     resources: list[ReportResource]
 
     @classmethod
     def from_raw(cls, raw: dict[str, Any]) -> Report:
+        rpds = raw.get("payloadDescriptors")
         inst = cls(
             id=raw.get("id"),
             created=raw.get("createdDateTime"),
@@ -291,7 +359,11 @@ class Report(OpenADRBase):
             client_name=raw["clientName"],
             client_id=raw.get("clientID"),
             report_name=raw.get("reportName"),
-            payload_descriptors=raw.get("payloadDescriptors"),
+            payload_descriptors=(
+                [ReportPayloadDescriptor.from_raw(pd) for pd in rpds]
+                if rpds
+                else None
+            ),
             resources=[ReportResource.from_raw(r) for r in raw["resources"]],
         )
         inst._raw = raw

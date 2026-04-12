@@ -204,6 +204,29 @@ client.endpoint_scopes("/programs", "get") # ["read_all"]
 client.authorized("/events", "post")       # True/False based on client scopes
 ```
 
+### User-Agent
+
+Every client sends a `User-Agent` header for server-side log identification. The default is `openadr3/<version> (node=<hex>)` where the node ID comes from `uuid.getnode()` (MAC-derived, stable across restarts).
+
+Override it to identify your application:
+
+```python
+client = openadr3.create_ven_client(
+    base_url=base_url,
+    token=token,
+    user_agent="my-ven-app/1.0",
+)
+
+# Or compose a layered string with the default
+from openadr3.api import DEFAULT_USER_AGENT
+client = openadr3.OpenADRClient(
+    base_url=base_url,
+    user_agent=f"my-app/1.0 {DEFAULT_USER_AGENT}",
+)
+```
+
+The User-Agent is preserved across `fetch_token()` client recreation.
+
 ### Context Manager
 
 ```python

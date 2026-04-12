@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from importlib.metadata import version as _pkg_version
 from pathlib import Path
 from typing import Any
+from uuid import getnode as _getnode
 
 import httpx
 import yaml
@@ -19,6 +21,8 @@ from openadr3.entities.models import (
     Subscription,
     Ven,
 )
+
+DEFAULT_USER_AGENT = f"openadr3/{_pkg_version('openadr3')} (node={_getnode():012x})"
 
 # Client type scopes matching Clojure implementation
 VEN_SCOPES = frozenset(
@@ -70,18 +74,21 @@ class OpenADRClient:
         client_type: str | None = None,
         scopes: frozenset[str] | None = None,
         validate: bool = False,
+        user_agent: str | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.client_type = client_type
         self.scopes = scopes or frozenset()
         self.validate = validate
+        self.user_agent = user_agent or DEFAULT_USER_AGENT
         self._spec: dict[str, Any] | None = None
 
         if spec_path:
             self._spec = self._load_spec(spec_path)
 
         auth = BearerAuth(token) if token else None
-        self._http = httpx.Client(base_url=self.base_url, auth=auth)
+        headers = {"User-Agent": self.user_agent}
+        self._http = httpx.Client(base_url=self.base_url, auth=auth, headers=headers)
 
     @staticmethod
     def _load_spec(path: str | Path) -> dict[str, Any]:
@@ -322,6 +329,7 @@ class OpenADRClient:
         self._http = httpx.Client(
             base_url=self.base_url,
             auth=BearerAuth(token),
+            headers={"User-Agent": self.user_agent},
         )
         return token
 
@@ -401,6 +409,7 @@ def create_ven_client(
     token: str,
     spec_path: str | Path | None = None,
     validate: bool = False,
+    user_agent: str | None = None,
 ) -> OpenADRClient:
     """Create an OpenADR client configured for VEN operations."""
     return OpenADRClient(
@@ -410,6 +419,7 @@ def create_ven_client(
         client_type="ven",
         scopes=VEN_SCOPES,
         validate=validate,
+        user_agent=user_agent,
     )
 
 
@@ -418,6 +428,7 @@ def create_bl_client(
     token: str,
     spec_path: str | Path | None = None,
     validate: bool = False,
+    user_agent: str | None = None,
 ) -> OpenADRClient:
     """Create an OpenADR client configured for Business Logic operations."""
     return OpenADRClient(
@@ -427,4 +438,5 @@ def create_bl_client(
         client_type="bl",
         scopes=BL_SCOPES,
         validate=validate,
+        user_agent=user_agent,
     )

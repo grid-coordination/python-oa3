@@ -4,6 +4,7 @@ import pytest
 
 from openadr3.api import (
     BL_SCOPES,
+    DEFAULT_USER_AGENT,
     VEN_SCOPES,
     OpenADRClient,
     body,
@@ -151,6 +152,66 @@ class TestFactoryFunctions:
         assert c.client_type == "bl"
         assert c.scopes == BL_SCOPES
         c.close()
+
+
+class TestUserAgent:
+    def test_default_user_agent(self, httpx_mock):
+        httpx_mock.add_response(json={})
+        client = OpenADRClient(base_url="http://test")
+        assert client.user_agent == DEFAULT_USER_AGENT
+        assert "openadr3/" in client.user_agent
+        assert "(node=" in client.user_agent
+        client._request("GET", "/test")
+        req = httpx_mock.get_request()
+        assert req.headers["user-agent"] == DEFAULT_USER_AGENT
+        client.close()
+
+    def test_custom_user_agent(self, httpx_mock):
+        httpx_mock.add_response(json={})
+        client = OpenADRClient(base_url="http://test", user_agent="my-app/1.0")
+        assert client.user_agent == "my-app/1.0"
+        client._request("GET", "/test")
+        req = httpx_mock.get_request()
+        assert req.headers["user-agent"] == "my-app/1.0"
+        client.close()
+
+    def test_factory_user_agent(self):
+        c = create_ven_client(
+            base_url="http://test", token="tok", user_agent="ven-app/2.0"
+        )
+        assert c.user_agent == "ven-app/2.0"
+        c.close()
+
+        c = create_bl_client(
+            base_url="http://test", token="tok", user_agent="bl-app/3.0"
+        )
+        assert c.user_agent == "bl-app/3.0"
+        c.close()
+
+    def test_user_agent_preserved_after_fetch_token(self, httpx_mock):
+        # Mock /auth/server response
+        httpx_mock.add_response(
+            url="http://test/auth/server",
+            json={"tokenURL": "http://auth.test/token"},
+        )
+        # Mock token endpoint response
+        httpx_mock.add_response(
+            url="http://auth.test/token",
+            json={"access_token": "new-tok"},
+        )
+        # Mock a request after token fetch to verify UA on the new client
+        httpx_mock.add_response(url="http://test/programs", json=[])
+
+        client = OpenADRClient(
+            base_url="http://test", user_agent="my-app/1.0"
+        )
+        client.fetch_token("cid", "csec")
+        client._request("GET", "/programs")
+
+        # The third request (after auth/server and token) should have our UA
+        reqs = httpx_mock.get_requests()
+        assert reqs[2].headers["user-agent"] == "my-app/1.0"
+        client.close()
 
 
 class TestContextManager:

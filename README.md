@@ -119,6 +119,8 @@ All top-level entities share common metadata: `id`, `created` (DateTime), `modif
 | `IntervalPeriod` | Start datetime + duration + computed period tuple |
 | `Interval` | Numbered interval with payloads |
 | `Payload` | Type-tagged values (PRICE/USAGE get Decimal coercion) |
+| `EventPayloadDescriptor` | Event payload descriptor (payloadType, units, currency) |
+| `ReportPayloadDescriptor` | Report payload descriptor (payloadType, readingType, units, accuracy, confidence) |
 | `ObjectOperation` | Subscription callback definition |
 
 ## API Client
@@ -187,6 +189,8 @@ client = openadr3.OpenADRClient(
 | `client.report(id)` | `Report` |
 | `client.subscriptions()` | `list[Subscription]` |
 | `client.subscription(id)` | `Subscription` |
+| `client.find_program_by_name(name)` | `Program \| None` |
+| `client.find_ven_by_name(name)` | `Ven \| None` |
 
 **Raw** (return `httpx.Response`):
 

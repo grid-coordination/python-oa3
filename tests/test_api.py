@@ -11,6 +11,7 @@ from openadr3.api import (
     create_ven_client,
     success,
 )
+from openadr3.entities.models import Program, Ven
 
 
 class TestSuccess:
@@ -67,6 +68,55 @@ class TestClientPrograms:
         client = OpenADRClient(base_url="http://test")
         p = client.program("p1")
         assert p.program_name == "Test"
+        client.close()
+
+
+    def test_find_program_by_name(self, httpx_mock):
+        httpx_mock.add_response(json=[
+            {
+                "id": "p1",
+                "createdDateTime": "2024-06-15T10:00:00Z",
+                "modificationDateTime": "2024-06-15T12:00:00Z",
+                "objectType": "PROGRAM",
+                "programName": "Test",
+            }
+        ])
+        client = OpenADRClient(base_url="http://test")
+        p = client.find_program_by_name("Test")
+        assert isinstance(p, Program)
+        assert p.program_name == "Test"
+        client.close()
+
+    def test_find_program_by_name_not_found(self, httpx_mock):
+        httpx_mock.add_response(json=[])
+        client = OpenADRClient(base_url="http://test")
+        p = client.find_program_by_name("Missing")
+        assert p is None
+        client.close()
+
+
+class TestClientVens:
+    def test_find_ven_by_name(self, httpx_mock):
+        httpx_mock.add_response(json=[
+            {
+                "id": "v1",
+                "createdDateTime": "2024-06-15T10:00:00Z",
+                "modificationDateTime": "2024-06-15T12:00:00Z",
+                "objectType": "VEN",
+                "venName": "My VEN",
+            }
+        ])
+        client = OpenADRClient(base_url="http://test")
+        v = client.find_ven_by_name("My VEN")
+        assert isinstance(v, Ven)
+        assert v.ven_name == "My VEN"
+        client.close()
+
+    def test_find_ven_by_name_not_found(self, httpx_mock):
+        httpx_mock.add_response(json=[])
+        client = OpenADRClient(base_url="http://test")
+        v = client.find_ven_by_name("Missing")
+        assert v is None
         client.close()
 
 

@@ -351,6 +351,14 @@ Ruff lint + format are also enforced in CI via `.github/workflows/ci.yml`.
 
 The OpenADR 3.1.0 specification is embedded at `resources/openadr3.yaml`. See `resources/ORIGIN.md` for provenance and license.
 
+## Contributing
+
+Issues, Discussions, and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow (and the dev commands: tests, lint, format, type check, pre-commit). In short:
+
+- **Questions, API/design discussion, OpenADR spec or VTN behavior gaps** → [Discussions](https://github.com/grid-coordination/python-oa3/discussions)
+- **Confirmed bugs, coercion/schema fixes, doc errors** → [Issues](https://github.com/grid-coordination/python-oa3/issues)
+- **Patches** → pull requests; please open a Discussion or Issue first for non-trivial changes (new entity types, new endpoints, new schema fields, new payload dispatch behavior)
+
 ## License
 
 [MIT License](LICENSE) — Copyright (c) 2026 Clark Communications Corporation

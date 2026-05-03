@@ -251,7 +251,21 @@ token = fetch_token(
 auth = BearerAuth(token)
 ```
 
-## Time Utilities
+## Time and Timezones
+
+Datetimes are zone-aware end-to-end. The library treats the **wire string's offset as the source of truth** and preserves it through parse → serialize without normalization.
+
+| Wire string | Round-trip output | Notes |
+|-------------|-------------------|-------|
+| `2024-06-15T10:30:00Z` | `2024-06-15T10:30:00Z` | UTC literal preserved |
+| `2024-06-15T10:30:00+00:00` | `2024-06-15T10:30:00+00:00` | **Not** normalized to `Z` |
+| `2024-06-15T10:30:00-07:00` | `2024-06-15T10:30:00-07:00` | Negative offsets preserved |
+| `2024-06-15T10:30:00+05:30` | `2024-06-15T10:30:00+05:30` | Half-hour offsets preserved |
+| `2024-06-15T10:30:00.123456Z` | `2024-06-15T10:30:00.123456Z` | Sub-second precision preserved |
+
+This holds at both the `parse_datetime` / `.to_iso8601_string()` level and end-to-end through Pydantic models that use the `PendulumDateTime` annotated type. Round-trip behavior is covered by the test suite (`tests/test_time.py::TestWireOffsetPreservation`, `TestPydanticAnnotatedRoundTrip`).
+
+### Parsing and conversion
 
 ```python
 from openadr3 import parse_datetime, parse_duration, to_zoned
@@ -263,19 +277,22 @@ dt = parse_datetime("2024-06-15 14:00:00Z")  # space instead of T
 # Parse ISO 8601 durations
 dur = parse_duration("PT2H30M")
 
-# Timezone conversion
+# Convert to a named timezone (returns a new pendulum.DateTime)
 eastern = to_zoned(dt, "America/New_York")
 ```
 
+`to_zoned` is the only operation that intentionally changes the wire offset — it's an explicit conversion, not a normalization on parse.
+
 ### Pydantic Annotated Types
 
-`PendulumDateTime` and `PendulumDuration` are `Annotated` types with `BeforeValidator` and `PlainSerializer`, ready for use in your own Pydantic models:
+`PendulumDateTime` and `PendulumDuration` are `Annotated` types with `BeforeValidator` and `PlainSerializer`, ready for use in your own Pydantic models. Pendulum types require `arbitrary_types_allowed=True` in the model config:
 
 ```python
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from openadr3 import PendulumDateTime, PendulumDuration
 
 class MyModel(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     start: PendulumDateTime = None
     length: PendulumDuration = None
 ```

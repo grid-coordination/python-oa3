@@ -2,8 +2,15 @@
 
 import pendulum
 import pytest
+from pydantic import BaseModel, ConfigDict
 
-from openadr3.time import parse_datetime, parse_duration, to_zoned
+from openadr3.time import (
+    PendulumDateTime,
+    PendulumDuration,
+    parse_datetime,
+    parse_duration,
+    to_zoned,
+)
 
 
 class TestParseDatetime:
@@ -89,3 +96,78 @@ class TestToZoned:
         eastern = to_zoned(utc, "America/New_York")
         assert eastern.timezone_name == "America/New_York"
         assert eastern.hour == 10  # EDT = UTC-4
+
+
+class TestWireOffsetPreservation:
+    """The library's contract: the wire string's offset is the source of truth
+    and is preserved unchanged through parse → serialize."""
+
+    @pytest.mark.parametrize(
+        "wire",
+        [
+            "2024-06-15T10:30:00Z",
+            "2024-06-15T10:30:00+00:00",
+            "2024-06-15T10:30:00-07:00",
+            "2024-06-15T10:30:00+05:30",
+            "2024-06-15T10:30:00.123456Z",
+            "2024-06-15T10:30:00.123456-07:00",
+        ],
+    )
+    def test_roundtrip_preserves_wire_string(self, wire):
+        dt = parse_datetime(wire)
+        assert dt.to_iso8601_string() == wire
+
+    def test_z_is_not_normalized_to_plus_offset(self):
+        assert (
+            parse_datetime("2024-06-15T10:30:00Z").to_iso8601_string()
+            == "2024-06-15T10:30:00Z"
+        )
+
+    def test_plus_zero_is_not_normalized_to_z(self):
+        assert (
+            parse_datetime("2024-06-15T10:30:00+00:00").to_iso8601_string()
+            == "2024-06-15T10:30:00+00:00"
+        )
+
+    def test_offset_hours_match_wire(self):
+        assert parse_datetime("2024-06-15T10:30:00-07:00").offset_hours == -7
+        assert parse_datetime("2024-06-15T10:30:00+05:30").offset_hours == 5.5
+        assert parse_datetime("2024-06-15T10:30:00Z").offset_hours == 0
+
+
+class _RoundTripModel(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    start: PendulumDateTime = None
+    length: PendulumDuration = None
+
+
+class TestPydanticAnnotatedRoundTrip:
+    """The PendulumDateTime / PendulumDuration annotated types preserve the
+    wire offset and ISO 8601 duration shape end-to-end through Pydantic."""
+
+    @pytest.mark.parametrize(
+        "wire_dt",
+        [
+            "2024-06-15T10:30:00Z",
+            "2024-06-15T10:30:00+00:00",
+            "2024-06-15T10:30:00-07:00",
+            "2024-06-15T10:30:00+05:30",
+        ],
+    )
+    def test_datetime_roundtrip(self, wire_dt):
+        m = _RoundTripModel(start=wire_dt)
+        assert m.model_dump()["start"] == wire_dt
+
+    @pytest.mark.parametrize(
+        "wire_dur",
+        ["PT1H", "PT2H30M", "P1DT2H30M", "PT15M", "PT0S"],
+    )
+    def test_duration_roundtrip(self, wire_dur):
+        m = _RoundTripModel(length=wire_dur)
+        assert m.model_dump()["length"] == wire_dur
+
+    def test_none_values_roundtrip_as_none(self):
+        m = _RoundTripModel()
+        dumped = m.model_dump()
+        assert dumped["start"] is None
+        assert dumped["length"] is None
